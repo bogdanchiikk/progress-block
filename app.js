@@ -85,69 +85,89 @@ document.addEventListener('DOMContentLoaded', function() {
     const hideToggle = document.getElementById("hideToggle");
     const errorMessage = document.getElementById("errorMessage");
     
-    function validateInput(value) {
-        const numValue = +value;
-        const isValid = !isNaN(numValue) && numValue >= 0 && numValue <= 100;
-        
-        if (!isValid) {
-            input.classList.add('input-error');
-            errorMessage.style.display = 'block';
-        } else {
-            input.classList.remove('input-error');
-            errorMessage.style.display = 'none';
-        }
-        
-        return isValid;
+    function showError() {
+        input.classList.add('input-error');
+        errorMessage.style.display = 'block';
     }
     
-    input.addEventListener("input", () => {
-        let value = +input.value;
+    function hideError() {
+        input.classList.remove('input-error');
+        errorMessage.style.display = 'none';
+    }
+    
+    function validateInput(value) {
+        const numValue = parseInt(value);
         
-        // Валидация ввода
+        if (isNaN(numValue) || numValue < 0 || numValue > 100) {
+            showError();
+            return false;
+        } else {
+            hideError();
+            return true;
+        }
+    }
+    
+    input.addEventListener("input", function() {
+        let value = this.value;
+        
+        if (!validateInput(value)) {
+            // Если значение невалидное, но пользователь ещё вводит - не блокируем ввод
+            return;
+        }
+        
+        const numValue = parseInt(value);
+        progress.setValue(numValue);
+    });
+    
+    input.addEventListener("change", function() {
+        let value = parseInt(this.value);
+        
         if (isNaN(value)) {
             value = 0;
-        }
-        
-        // Ограничение значения от 0 до 100
-        if (value < 0) {
+        } else if (value < 0) {
             value = 0;
-            input.value = 0;
         } else if (value > 100) {
             value = 100;
-            input.value = 100;
+        }
+        
+        this.value = value;
+        validateInput(value);
+        progress.setValue(value);
+    });
+    
+    input.addEventListener("blur", function() {
+        let value = parseInt(this.value);
+        
+        if (isNaN(value)) {
+            value = 0;
+            this.value = 0;
+        } else if (value < 0) {
+            value = 0;
+            this.value = 0;
+        } else if (value > 100) {
+            value = 100;
+            this.value = 100;
         }
         
         validateInput(value);
         progress.setValue(value);
     });
     
-    // Добавляем обработчик изменения для дополнительной валидации
-    input.addEventListener("change", () => {
-        let value = +input.value;
-        
-        if (isNaN(value) || value < 0) {
-            value = 0;
-            input.value = 0;
-        } else if (value > 100) {
-            value = 100;
-            input.value = 100;
+    // Предотвращаем ввод нечисловых символов
+    input.addEventListener("keypress", function(e) {
+        const charCode = e.which ? e.which : e.keyCode;
+        // Разрешаем: цифры, backspace, delete, tab
+        if (charCode > 31 && (charCode < 48 || charCode > 57)) {
+            e.preventDefault();
         }
-        
-        validateInput(value);
-        progress.setValue(value);
     });
     
-    // Валидация при загрузке страницы
-    input.addEventListener("blur", () => {
-        validateInput(input.value);
+    animateToggle.addEventListener("change", function() {
+        progress.setAnimated(this.checked);
     });
     
-    animateToggle.addEventListener("change", () => {
-        progress.setAnimated(animateToggle.checked);
-    });
-    
-    hideToggle.addEventListener("change", () => {
-        progress.setHidden(hideToggle.checked);
+    hideToggle.addEventListener("change", function() {
+        progress.setHidden(this.checked);
     });
     
     // Инициализация
