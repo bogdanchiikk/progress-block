@@ -87,15 +87,17 @@ document.addEventListener('DOMContentLoaded', function() {
     
     function validateInput(value) {
         const numValue = +value;
-        if (isNaN(numValue) || numValue < 0 || numValue > 100) {
+        const isValid = !isNaN(numValue) && numValue >= 0 && numValue <= 100;
+        
+        if (!isValid) {
             input.classList.add('input-error');
             errorMessage.style.display = 'block';
-            return false;
         } else {
             input.classList.remove('input-error');
             errorMessage.style.display = 'none';
-            return true;
         }
+        
+        return isValid;
     }
     
     input.addEventListener("input", () => {
@@ -125,13 +127,19 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (isNaN(value) || value < 0) {
             value = 0;
+            input.value = 0;
         } else if (value > 100) {
             value = 100;
+            input.value = 100;
         }
         
-        input.value = value;
         validateInput(value);
         progress.setValue(value);
+    });
+    
+    // Валидация при загрузке страницы
+    input.addEventListener("blur", () => {
+        validateInput(input.value);
     });
     
     animateToggle.addEventListener("change", () => {
@@ -142,6 +150,7 @@ document.addEventListener('DOMContentLoaded', function() {
         progress.setHidden(hideToggle.checked);
     });
     
+    // Инициализация
     input.value = progress.getValue();
     validateInput(input.value);
 });
